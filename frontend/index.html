@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Manager</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    
+    h1, h2, h3 {
+      color: #2c3e50;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e9ecef;
+    }
+    
+    .container {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .sidebar {
+      flex: 1;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .main-content {
+      flex: 3;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #e9ecef;
+    }
+    
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+    
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    input, textarea, select, button {
+      padding: 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    
+    button {
+      background-color: #0d6efd;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: #0b5ed7;
+    }
+    
+    .transaction-btn {
+      background-color: #6c757d;
+      margin-right: 5px;
+    }
+    
+    .transaction-btn:hover {
+      background-color: #5a6268;
+    }
+    
+    .success-btn {
+      background-color: #198754;
+    }
+    
+    .success-btn:hover {
+      background-color: #157347;
+    }
+    
+    .danger-btn {
+      background-color: #dc3545;
+    }
+    
+    .danger-btn:hover {
+      background-color: #bb2d3b;
+    }
+    
+    .status-pill {
+      padding: 4px 8px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-block;
+    }
+    
+    .status-low {
+      background-color: #ffecb5;
+      color: #664d03;
+    }
+    
+    .status-good {
+      background-color: #d1e7dd;
+      color: #0f5132;
+    }
+    
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .tab {
+      padding: 10px 15px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    
+    .tab.active {
+      border-bottom: 2px solid #0d6efd;
+      font-weight: 500;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .search-bar {
+      margin-bottom: 20px;
+    }
+    
+    .search-bar input {
+      width: 100%;
+    }
+    
+    .item-details {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      display: none;
+    }
+    
+    .transaction-list {
+      margin-top: 20px;
+    }
+    
+    .badge {
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .badge-in {
+      background-color: #d1e7dd;
+      color: #0f5132;
+    }
+    
+    .badge-out {
+      background-color: #f8d7da;
+      color: #842029;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Inventory Manager</h1>
+  
+  <div class="container">
+    <div class="sidebar">
+      <h2>Add New Item</h2>
+      <form id="add-item-form">
+        <input type="text" id="item-name" placeholder="Item Name" required>
+        <textarea id="item-description" placeholder="Description"></textarea>
+        <input type="number" id="item-quantity" placeholder="Initial Quantity" min="0" required>
+        <input type="text" id="item-unit" placeholder="Unit (e.g., kg, pcs)" required>
+        <input type="text" id="item-category" placeholder="Category" required>
+        <button type="submit">Add Item</button>
+      </form>
+      
+      <div id="item-transaction-form" style="display: none; margin-top: 30px;">
+        <h2>Record Transaction</h2>
+        <form id="transaction-form">
+          <input type="hidden" id="transaction-item-id">
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <button type="button" class="transaction-type success-btn" data-type="in">Stock In</button>
+            <button type="button" class="transaction-type danger-btn" data-type="out">Stock Out</button>
+          </div>
+          <input type="hidden" id="transaction-type" value="in">
+          <input type="number" id="transaction-quantity" placeholder="Quantity" min="1" required>
+          <textarea id="transaction-notes" placeholder="Notes"></textarea>
+          <button type="submit" class="success-btn">Record Transaction</button>
+          <button type="button" id="cancel-transaction" class="transaction-btn">Cancel</button>
+        </form>
+      </div>
+    </div>
+    
+    <div class="main-content">
+      <div class="tabs">
+        <button class="tab active" data-tab="inventory">Inventory</button>
+        <button class="tab" data-tab="transactions">Transactions</button>
+        <button class="tab" data-tab="low-stock">Low Stock</button>
+      </div>
+      
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search items...">
+      </div>
+      
+      <div class="tab-content active" id="inventory-tab">
+        <table id="inventory-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Quantity</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-body">
+            <!-- Inventory items will be loaded here -->
+          </tbody>
+        </table>
+        
+        <div id="item-details" class="item-details">
+          <h3 id="detail-title">Item Details</h3>
+          <div id="detail-content"></div>
+          <div class="transaction-list">
+            <h4>Recent Transactions</h4>
+            <div id="item-transactions"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="transactions-tab">
+        <table id="transactions-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Item</th>
+              <th>Type</th>
+              <th>Quantity</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-body">
+            <!-- Transactions will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="tab-content" id="low-stock-tab">
+        <h3>Low Stock Items (Quantity ≤ 5)</h3>
+        <table id="low-stock-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Quantity</th>
+              <th>Category</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="low-stock-body">
+            <!-- Low stock items will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import the backend actor
+
+    import { backend } from 'declarations/backend';
+    
+    const InventoryManager = backend;
+    // Format date function
+    const formatDate = (timestamp) => {
+      const date = new Date(Number(timestamp) / 1000000); // Convert nanoseconds to milliseconds
+      return date.toLocaleString();
+    };
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Update active tab
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Show active tab content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+        
+        // Refresh data when switching tabs
+        if (tab.dataset.tab === 'inventory') {
+          loadInventory();
+        } else if (tab.dataset.tab === 'transactions') {
+          loadTransactions();
+        } else if (tab.dataset.tab === 'low-stock') {
+          loadLowStockItems();
+        }
+      });
+    });
+
+    // Load inventory data
+    const loadInventory = async () => {
+      try {
+        const items = await InventoryManager.getAllItems();
+        renderInventory(items);
+      } catch (error) {
+        console.error("Error loading inventory:", error);
+      }
+    };
+
+    // Render inventory table
+    const renderInventory = (items) => {
+      const tableBody = document.getElementById('inventory-body');
+      tableBody.innerHTML = '';
+      
+      if (items.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No items found</td></tr>`;
+        return;
+      }
+      
+      items.forEach(item => {
+        const row = document.createElement('tr');
+        const statusClass = item.quantity <= 5 ? 'status-low' : 'status-good';
+        const statusText = item.quantity <= 5 ? 'Low Stock' : 'Good';
+        
+        row.innerHTML = `
+          <td>${item.name}</td>
+          <td>${item.quantity} ${item.unit}</td>
+          <td>${item.category}</td>
+          <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+          <td>
+            <button class="transaction-btn" data-id="${item.id}" data-action="transaction">Transaction</button>
+            <button class="transaction-btn" data-id="${item.id}" data-action="details">Details</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+      
+      // Add event listeners to buttons
+      document.querySelectorAll('[data-action="transaction"]').forEach(btn => {
+        btn.addEventListener('click', () => showTransactionForm(Number(btn.dataset.id)));
+      });
+      
+      document.querySelectorAll('[data-action="details"]').forEach(btn => {
+        btn.addEventListener('click', () => showItemDetails(Number(btn.dataset.id)));
+      });
+    };
+
+    // Load transactions
+    const loadTransactions = async () => {
+      try {
+        const transactions = await InventoryManager.getAllTransactions();
+        renderTransactions(transactions);
+      } catch (error) {
+        console.error("Error loading transactions:", error);
+      }
+    };
+
+    // Render transactions table
+    const renderTransactions = async (transactions) => {
+      const tableBody = document.getElementById('transactions-body');
+      tableBody.innerHTML = '';
+      
+      if (transactions.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No transactions found</td></tr>`;
+        return;
+      }
+      
+      // Sort transactions by timestamp (newest first)
+      transactions.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+      
+      // Create a map of item IDs to names for faster lookup
+      const items = await InventoryManager.getAllItems();
+      const itemMap = {};
+      items.forEach(item => {
+        itemMap[item.id] = item.name;
+      });
+      
+      transactions.forEach(tx => {
+        const row = document.createElement('tr');
+        const typeText = tx.transactionType.hasOwnProperty('in') ? 'Stock In' : 'Stock Out';
+        const typeClass = tx.transactionType.hasOwnProperty('in') ? 'badge-in' : 'badge-out';
+        const itemName = itemMap[tx.itemId] || `Item #${tx.itemId}`;
+        
+        row.innerHTML = `
+          <td>${formatDate(tx.timestamp)}</td>
+          <td>${itemName}</td>
+          <td><span class="badge ${typeClass}">${typeText}</span></td>
+          <td>${tx.quantity}</td>
+          <td>${tx.notes}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    };
+
+    // Load low stock items
+    const loadLowStockItems = async () => {
+      try {
+        const items = await InventoryManager.getLowStockItems(5);
+        renderLowStockItems(items);
+      } catch (error) {
+        console.error("Error loading low stock items:", error);
+      }
+    };
+
+    // Render low stock items
+    const renderLowStockItems = (items) => {
+      const tableBody = document.getElementById('low-stock-body');
+      tableBody.innerHTML = '';
+      
+      if (items.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center;">No low stock items found</td></tr>`;
+        return;
+      }
+      
+      items.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${item.name}</td>
+          <td>${item.quantity} ${item.unit}</td>
+          <td>${item.category}</td>
+          <td>
+            <button class="success-btn" data-id="${item.id}" data-action="restock">Restock</button>
+            <button class="transaction-btn" data-id="${item.id}" data-action="details">Details</button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+      
+      // Add event listeners
+      document.querySelectorAll('[data-action="restock"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          showTransactionForm(Number(btn.dataset.id));
+          document.getElementById('transaction-type').value = 'in';
+          document.querySelectorAll('.transaction-type').forEach(btn => {
+            btn.classList.remove('active');
+          });
+          document.querySelector('.transaction-type[data-type="in"]').classList.add('active');
+        });
+      });
+      
+      document.querySelectorAll('[data-action="details"]').forEach(btn => {
+        btn.addEventListener('click', () => showItemDetails(Number(btn.dataset.id)));
+      });
+    };
+
+    // Show transaction form
+    const showTransactionForm = async (itemId) => {
+      try {
+        const item = await InventoryManager.getItem(itemId);
+        if (item) {
+          document.getElementById('transaction-item-id').value = itemId;
+          document.getElementById('item-transaction-form').style.display = 'block';
+          document.getElementById('transaction-quantity').value = '';
+          document.getElementById('transaction-notes').value = '';
+          document.getElementById('transaction-quantity').focus();
+        }
+      } catch (error) {
+        console.error("Error getting item details:", error);
+      }
+    };
+
+    // Show item details
+    const showItemDetails = async (itemId) => {
+      try {
+        const item = await InventoryManager.getItem(itemId);
+        const transactions = await InventoryManager.getItemTransactions(itemId);
+        
+        if (item) {
+          document.getElementById('detail-title').textContent = item.name;
+          document.getElementById('detail-content').innerHTML = `
+            <p><strong>Description:</strong> ${item.description}</p>
+            <p><strong>Quantity:</strong> ${item.quantity} ${item.unit}</p>
+            <p><strong>Category:</strong> ${item.category}</p>
+            <p><strong>Last Updated:</strong> ${formatDate(item.lastUpdated)}</p>
+          `;
+          
+          // Render recent transactions
+          const txContainer = document.getElementById('item-transactions');
+          txContainer.innerHTML = '';
+          
+          if (transactions.length === 0) {
+            txContainer.innerHTML = '<p>No transactions found for this item.</p>';
+          } else {
+            // Sort by timestamp (newest first)
+            transactions.sort((a, b) => Number(b.timestamp) - Number(a.timestamp));
+            
+            const txTable = document.createElement('table');
+            txTable.innerHTML = `
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Quantity</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            `;
+            
+            const txBody = txTable.querySelector('tbody');
+            
+            transactions.forEach(tx => {
+              const typeText = tx.transactionType.hasOwnProperty('in') ? 'Stock In' : 'Stock Out';
+              const typeClass = tx.transactionType.hasOwnProperty('in') ? 'badge-in' : 'badge-out';
+              
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${formatDate(tx.timestamp)}</td>
+                <td><span class="badge ${typeClass}">${typeText}</span></td>
+                <td>${tx.quantity} ${item.unit}</td>
+                <td>${tx.notes}</td>
+              `;
+              txBody.appendChild(row);
+            });
+            
+            txContainer.appendChild(txTable);
+          }
+          
+          document.getElementById('item-details').style.display = 'block';
+        }
+      } catch (error) {
+        console.error("Error showing item details:", error);
+      }
+    };
+
+    // Add event listener to the add item form
+    document.getElementById('add-item-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('item-name').value.trim();
+      const description = document.getElementById('item-description').value.trim();
+      const quantity = Number(document.getElementById('item-quantity').value);
+      const unit = document.getElementById('item-unit').value.trim();
+      const category = document.getElementById('item-category').value.trim();
+      
+      try {
+        await InventoryManager.addItem(name, description, quantity, unit, category);
+        document.getElementById('add-item-form').reset();
+        loadInventory();
+        alert('Item added successfully!');
+      } catch (error) {
+        console.error("Error adding item:", error);
+        alert('Error adding item. Please try again.');
+      }
+    });
+
+    // Add event listener to the transaction form
+    document.getElementById('transaction-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const itemId = Number(document.getElementById('transaction-item-id').value);
+      const type = document.getElementById('transaction-type').value;
+      const quantity = Number(document.getElementById('transaction-quantity').value);
+      const notes = document.getElementById('transaction-notes').value.trim();
+      
+      try {
+        const result = await InventoryManager.recordTransaction(
+          itemId, 
+          { [type]: null }, 
+          quantity, 
+          notes
+        );
+        
+        if (result !== null) {
+          document.getElementById('transaction-form').reset();
+          document.getElementById('item-transaction-form').style.display = 'none';
+          loadInventory();
+          loadTransactions();
+          alert('Transaction recorded successfully!');
+        } else {
+          alert('Error recording transaction. Please check quantities.');
+        }
+      } catch (error) {
+        console.error("Error recording transaction:", error);
+        alert('Error recording transaction. Please try again.');
+      }
+    });
+
+    // Cancel transaction button
+    document.getElementById('cancel-transaction').addEventListener('click', () => {
+      document.getElementById('transaction-form').reset();
+      document.getElementById('item-transaction-form').style.display = 'none';
+    });
+
+    // Switch between transaction types
+    document.querySelectorAll('.transaction-type').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.transaction-type').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('transaction-type').value = btn.dataset.type;
+      });
+    });
+
+    // Search functionality
+    document.getElementById('search-input').addEventListener('input', async (e) => {
+      const query = e.target.value.trim();
+      
+      if (query) {
+        const items = await InventoryManager.searchItems(query);
+        renderInventory(items);
+      } else {
+        loadInventory();
+      }
+    });
+
+    // Initialize app
+    window.addEventListener('DOMContentLoaded', () => {
+      loadInventory();
+    });
+  </script>
+</body>
+</html>
